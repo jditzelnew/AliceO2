@@ -16,7 +16,8 @@
 #include "TParticlePDG.h"
 #include <string>
 
-namespace o2 {
+namespace o2
+{
 
 // An ALICE specific extension of ROOT's TDatabasePDG
 //
@@ -24,12 +25,14 @@ namespace o2 {
 // TDatabasePDG::Instance(), correct initialization is guaranteed.
 // Alternatively, a static function is exposed with which particles can be added
 // to TDatabasePDG objects directly.
-class O2DatabasePDG {
+class O2DatabasePDG
+{
   //
-public:
-  static TDatabasePDG *Instance() {
+ public:
+  static TDatabasePDG* Instance()
+  {
     static bool initialized =
-        false; // initialize this --> adds particles to TDatabasePDG;
+      false; // initialize this --> adds particles to TDatabasePDG;
     auto db = TDatabasePDG::Instance();
     if (!initialized) {
       addALICEParticles(db);
@@ -39,11 +42,12 @@ public:
   }
 
   // adds ALICE particles to a given TDatabasePDG instance
-  static void addALICEParticles(TDatabasePDG *db = TDatabasePDG::Instance());
-  static void addParticlesFromExternalFile(TDatabasePDG *db);
+  static void addALICEParticles(TDatabasePDG* db = TDatabasePDG::Instance());
+  static void addParticlesFromExternalFile(TDatabasePDG* db);
 
   // get particle's (if any) mass
-  static Double_t MassImpl(TParticlePDG *particle, bool &success) {
+  static Double_t MassImpl(TParticlePDG* particle, bool& success)
+  {
     success = false;
     if (!particle) {
       return -1.;
@@ -53,8 +57,9 @@ public:
   }
 
   // determine particle to get mass for based on PDG
-  static Double_t Mass(int pdg, bool &success,
-                       TDatabasePDG *db = O2DatabasePDG::Instance()) {
+  static Double_t Mass(int pdg, bool& success,
+                       TDatabasePDG* db = O2DatabasePDG::Instance())
+  {
     if (pdg < IONBASELOW || pdg > IONBASEHIGH) {
       // not an ion, return immediately
       return MassImpl(db->GetParticle(pdg), success);
@@ -72,14 +77,15 @@ public:
   // remove default constructor
   O2DatabasePDG() = delete;
 
-private:
+ private:
   static constexpr int IONBASELOW{1000000000};
   static constexpr int IONBASEHIGH{1099999999};
 };
 
 // by keeping this inline, we can use it in other parts of the code, for
 // instance Framework or Analysis, without needing to link against this library
-inline void O2DatabasePDG::addALICEParticles(TDatabasePDG *db) {
+inline void O2DatabasePDG::addALICEParticles(TDatabasePDG* db)
+{
   //
   // Add ALICE particles to the ROOT PDG data base
   // Code has been taken from AliRoot
@@ -657,18 +663,19 @@ inline void O2DatabasePDG::addALICEParticles(TDatabasePDG *db) {
   addParticlesFromExternalFile(db);
 }
 
-inline void O2DatabasePDG::addParticlesFromExternalFile(TDatabasePDG *db) {
+inline void O2DatabasePDG::addParticlesFromExternalFile(TDatabasePDG* db)
+{
   static bool initialized = false;
   if (!initialized) {
     // allow user to specify custom file
-    if (const char *custom = std::getenv("O2_SIM_CUSTOM_PDG")) {
+    if (const char* custom = std::getenv("O2_SIM_CUSTOM_PDG")) {
       // TODO: make sure this is a file
       db->ReadPDGTable(custom);
-    } else if (const char *o2Root = std::getenv("O2_ROOT")) {
+    } else if (const char* o2Root = std::getenv("O2_ROOT")) {
       // take the maintained file from O2
       auto inputExtraPDGs =
-          std::string(o2Root) +
-          "/share/Detectors/gconfig/data/extra_ions_pdg_table.dat";
+        std::string(o2Root) +
+        "/share/Detectors/gconfig/data/extra_ions_pdg_table.dat";
       db->ReadPDGTable(inputExtraPDGs.c_str());
     }
     initialized = true;
