@@ -38,29 +38,33 @@
 #include <fstream>
 #include <sstream>
 
-namespace o2 {
-namespace steer {
+namespace o2
+{
+namespace steer
+{
 // helper function to send trivial data
 template <typename T>
-void TypedVectorAttach(const char *name, fair::mq::Channel &channel,
-                       fair::mq::Parts &parts) {
+void TypedVectorAttach(const char* name, fair::mq::Channel& channel,
+                       fair::mq::Parts& parts)
+{
   static auto mgr = FairRootManager::Instance();
-  auto vector = mgr->InitObjectAs<const std::vector<T> *>(name);
+  auto vector = mgr->InitObjectAs<const std::vector<T>*>(name);
   if (vector) {
-    auto buffer = (char *)&(*vector)[0];
+    auto buffer = (char*)&(*vector)[0];
     auto buffersize = vector->size() * sizeof(T);
     fair::mq::MessagePtr message(channel.NewMessage(
-        buffer, buffersize, [](void *data, void *hint) {}, buffer));
+      buffer, buffersize, [](void* data, void* hint) {}, buffer));
     parts.AddPart(std::move(message));
   }
 }
 
-void O2MCApplicationBase::Stepping() {
+void O2MCApplicationBase::Stepping()
+{
   mStepCounter++;
 
   // check the max time of flight condition
   const auto tof = fMC->TrackTime();
-  auto &params = o2::GlobalProcessCutSimParam::Instance();
+  auto& params = o2::GlobalProcessCutSimParam::Instance();
   if (tof > params.TOFMAX) {
     fMC->StopTrack();
     return;
@@ -105,17 +109,19 @@ void O2MCApplicationBase::Stepping() {
   FairMCApplication::Stepping();
 }
 
-void O2MCApplicationBase::PreTrack() {
+void O2MCApplicationBase::PreTrack()
+{
   // dispatch first to function in FairRoot
   FairMCApplication::PreTrack();
 }
 
-void O2MCApplicationBase::ConstructGeometry() {
+void O2MCApplicationBase::ConstructGeometry()
+{
   // fill the mapping
   mModIdToName.clear();
   o2::detectors::DetID::mask_t dmask{};
   for (int i = 0; i < fModules->GetEntries(); ++i) {
-    auto mod = static_cast<FairModule *>(fModules->At(i));
+    auto mod = static_cast<FairModule*>(fModules->At(i));
     if (mod) {
       mModIdToName[mod->GetModId()] = mod->GetName();
       int did = o2::detectors::DetID::nameToID(mod->GetName());
@@ -131,18 +137,19 @@ void O2MCApplicationBase::ConstructGeometry() {
   // construct the volume name to module name mapping useful for StepAnalysis
   auto vollist = gGeoManager->GetListOfVolumes();
   for (int i = 0; i < vollist->GetEntries(); ++i) {
-    auto vol = static_cast<TGeoVolume *>(vollist->At(i));
+    auto vol = static_cast<TGeoVolume*>(vollist->At(i));
     auto iter = fModVolMap.find(vol->GetNumber());
     voltomodulefile << vol->GetName() << ":" << mModIdToName[iter->second]
                     << "\n";
   }
 }
 
-void O2MCApplicationBase::InitGeometry() {
+void O2MCApplicationBase::InitGeometry()
+{
   // load special cuts which might be given from the outside first.
-  auto &matMgr = o2::base::MaterialManager::Instance();
+  auto& matMgr = o2::base::MaterialManager::Instance();
   matMgr.loadCutsAndProcessesFromJSON(
-      o2::base::MaterialManager::ESpecial::kTRUE);
+    o2::base::MaterialManager::ESpecial::kTRUE);
   matMgr.SetLowEnergyNeutronTransport(mCutParams.lowneut);
   // During the following, FairModule::SetSpecialPhysicsCuts will be called for
   // each module
@@ -160,17 +167,18 @@ void O2MCApplicationBase::InitGeometry() {
   }
 }
 
-bool O2MCApplicationBase::MisalignGeometry() {
+bool O2MCApplicationBase::MisalignGeometry()
+{
   for (auto det : listDetectors) {
-    if (dynamic_cast<o2::base::Detector *>(det)) {
-      ((o2::base::Detector *)det)->addAlignableVolumes();
+    if (dynamic_cast<o2::base::Detector*>(det)) {
+      ((o2::base::Detector*)det)->addAlignableVolumes();
     }
   }
 
   // we stream out both unaligned geometry (to allow for
   // dynamic post-alignment) as well as the aligned version
   // which can be used by digitization etc. immediately
-  auto &confref = o2::conf::SimConfig::Instance();
+  auto& confref = o2::conf::SimConfig::Instance();
   auto geomfile = o2::base::NameConf::getGeomFileName(confref.getOutPrefix());
   // since in general the geometry is a CCDB object, it must be exported under
   // the standard name
@@ -178,20 +186,20 @@ bool O2MCApplicationBase::MisalignGeometry() {
   gGeoManager->Export(geomfile.c_str());
 
   // apply alignment for included detectors AFTER exporting ideal geometry
-  auto &aligner = o2::base::Aligner::Instance();
+  auto& aligner = o2::base::Aligner::Instance();
   aligner.applyAlignment(confref.getTimestamp());
 
   // export aligned geometry into different file
   auto alignedgeomfile =
-      o2::base::NameConf::getAlignedGeomFileName(confref.getOutPrefix());
+    o2::base::NameConf::getAlignedGeomFileName(confref.getOutPrefix());
   gGeoManager->Export(alignedgeomfile.c_str());
 
-  auto &param = o2::GeometryManagerParam::Instance();
+  auto& param = o2::GeometryManagerParam::Instance();
 
   // fill parallel world geometry if activated
   if (param.useParallelWorld) {
-    TGeoParallelWorld *pw =
-        gGeoManager->CreateParallelWorld("priority_sensors");
+    TGeoParallelWorld* pw =
+      gGeoManager->CreateParallelWorld("priority_sensors");
     if (param.usePwGeoBVH) {
       pw->SetAccelerationMode(TGeoParallelWorld::AccelerationMode::kBVH);
     }
@@ -199,8 +207,8 @@ bool O2MCApplicationBase::MisalignGeometry() {
       TGeoNavigator::SetPWSafetyCaching(true);
     }
     for (auto det : listDetectors) {
-      if (dynamic_cast<o2::base::Detector *>(det)) {
-        ((o2::base::Detector *)det)->fillParallelWorld();
+      if (dynamic_cast<o2::base::Detector*>(det)) {
+        ((o2::base::Detector*)det)->fillParallelWorld();
       }
     }
     gGeoManager->SetUseParallelWorldNav(true);
@@ -210,22 +218,24 @@ bool O2MCApplicationBase::MisalignGeometry() {
   return true;
 }
 
-void O2MCApplicationBase::finishEventCommon() {
+void O2MCApplicationBase::finishEventCommon()
+{
   LOG(info) << "This event/chunk did " << mStepCounter << " steps";
   LOG(info) << "Longest track time is " << mLongestTrackTime;
 
-  auto header = static_cast<o2::dataformats::MCEventHeader *>(fMCEventHeader);
+  auto header = static_cast<o2::dataformats::MCEventHeader*>(fMCEventHeader);
   header->getMCEventStats().setNSteps(mStepCounter);
   header->setDetId2HitBitLUT(o2::base::Detector::getDetId2HitBitIndex());
 
-  static_cast<o2::data::Stack *>(GetStack())->updateEventStats();
+  static_cast<o2::data::Stack*>(GetStack())->updateEventStats();
 }
 
-void O2MCApplicationBase::FinishEvent() {
+void O2MCApplicationBase::FinishEvent()
+{
   finishEventCommon();
 
-  auto header = static_cast<o2::dataformats::MCEventHeader *>(fMCEventHeader);
-  auto &confref = o2::conf::SimConfig::Instance();
+  auto header = static_cast<o2::dataformats::MCEventHeader*>(fMCEventHeader);
+  auto& confref = o2::conf::SimConfig::Instance();
 
   if (confref.isFilterOutNoHitEvents() &&
       header->getMCEventStats().getNHits() == 0) {
@@ -237,20 +247,22 @@ void O2MCApplicationBase::FinishEvent() {
   FairMCApplication::FinishEvent();
 }
 
-void O2MCApplicationBase::BeginEvent() {
+void O2MCApplicationBase::BeginEvent()
+{
   // dispatch first to function in FairRoot
   FairMCApplication::BeginEvent();
 
   // register event header with our stack
-  auto header = static_cast<o2::dataformats::MCEventHeader *>(fMCEventHeader);
-  static_cast<o2::data::Stack *>(GetStack())
-      ->setMCEventStats(&header->getMCEventStats());
+  auto header = static_cast<o2::dataformats::MCEventHeader*>(fMCEventHeader);
+  static_cast<o2::data::Stack*>(GetStack())
+    ->setMCEventStats(&header->getMCEventStats());
 
   mStepCounter = 0;
   mLongestTrackTime = 0;
 }
 
-void addSpecialParticles() {
+void addSpecialParticles()
+{
   //
   // Add particles needed for ALICE (not present in Geant3 or Geant4)
   // Code ported 1-1 from AliRoot
@@ -349,8 +361,8 @@ void addSpecialParticles() {
 
   // Anti-Lambda-Neutron
   TVirtualMC::GetMC()->DefineParticle(
-      -1010000020, "AntiLambdaNeutron", kPTNeutron, 2.054, 0.0, 2.632e-10,
-      "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 2, kFALSE);
+    -1010000020, "AntiLambdaNeutron", kPTNeutron, 2.054, 0.0, 2.632e-10,
+    "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 2, kFALSE);
 
   // H-Dibaryon
   TVirtualMC::GetMC()->DefineParticle(1020000020, "Hdibaryon", kPTNeutron, 2.23,
@@ -374,13 +386,13 @@ void addSpecialParticles() {
 
   // Lambda-Neutron-Neutron
   TVirtualMC::GetMC()->DefineParticle(
-      1010000030, "LambdaNeutronNeutron", kPTNeutron, 2.99, 0.0, 2.632e-10,
-      "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 3, kFALSE);
+    1010000030, "LambdaNeutronNeutron", kPTNeutron, 2.99, 0.0, 2.632e-10,
+    "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 3, kFALSE);
 
   // Anti-Lambda-Neutron-Neutron
   TVirtualMC::GetMC()->DefineParticle(
-      -1010000030, "AntiLambdaNeutronNeutron", kPTNeutron, 2.99, 0.0, 2.632e-10,
-      "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 3, kFALSE);
+    -1010000030, "AntiLambdaNeutronNeutron", kPTNeutron, 2.99, 0.0, 2.632e-10,
+    "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 3, kFALSE);
 
   // Omega-Proton
   TVirtualMC::GetMC()->DefineParticle(1030000020, "OmegaProton", kPTNeutron,
@@ -389,8 +401,8 @@ void addSpecialParticles() {
 
   // Anti-Omega-Proton
   TVirtualMC::GetMC()->DefineParticle(
-      -1030000020, "AntiOmegaProton", kPTNeutron, 2.592, 0.0, 2.632e-10,
-      "Hadron", 0.0, 2, 1, 0, 0, 0, 0, 0, 2, kFALSE);
+    -1030000020, "AntiOmegaProton", kPTNeutron, 2.592, 0.0, 2.632e-10,
+    "Hadron", 0.0, 2, 1, 0, 0, 0, 0, 0, 2, kFALSE);
 
   // Omega-Neutron
   TVirtualMC::GetMC()->DefineParticle(1030010020, "OmegaNeutron", kPTHadron,
@@ -399,8 +411,8 @@ void addSpecialParticles() {
 
   // Anti-Omega-Neutron
   TVirtualMC::GetMC()->DefineParticle(
-      -1030010020, "AntiOmegaNeutron", kPTHadron, 2.472, 1.0, 2.190e-22,
-      "Hadron", 0.0, 2, 1, 0, 0, 0, 0, 0, 2, kFALSE);
+    -1030010020, "AntiOmegaNeutron", kPTHadron, 2.472, 1.0, 2.190e-22,
+    "Hadron", 0.0, 2, 1, 0, 0, 0, 0, 0, 2, kFALSE);
 
   // Omega-Omega
   TVirtualMC::GetMC()->DefineParticle(1060020020, "OmegaOmega", kPTHadron,
@@ -419,18 +431,18 @@ void addSpecialParticles() {
 
   // Anti-Lambda(1405)-Proton
   TVirtualMC::GetMC()->DefineParticle(
-      -1010010021, "AntiLambda1405Proton", kPTHadron, 2.295, 1.0, 1.316e-23,
-      "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 2, kFALSE);
+    -1010010021, "AntiLambda1405Proton", kPTHadron, 2.295, 1.0, 1.316e-23,
+    "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 2, kFALSE);
 
   // Lambda(1405)-Lambda(1405)
   TVirtualMC::GetMC()->DefineParticle(
-      1020000021, "Lambda1405Lambda1405", kPTNeutron, 2.693, 0.0, 1.316e-23,
-      "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 2, kFALSE);
+    1020000021, "Lambda1405Lambda1405", kPTNeutron, 2.693, 0.0, 1.316e-23,
+    "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 2, kFALSE);
 
   // Anti-Lambda(1405)-Lambda(1405)
   TVirtualMC::GetMC()->DefineParticle(
-      -1020000021, "AntiLambda1405Lambda1405", kPTNeutron, 2.693, 0.0,
-      1.316e-23, "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 2, kFALSE);
+    -1020000021, "AntiLambda1405Lambda1405", kPTNeutron, 2.693, 0.0,
+    1.316e-23, "Hadron", 0.0, 0, 1, 0, 0, 0, 0, 0, 2, kFALSE);
 
   // c-deuteron
   TVirtualMC::GetMC()->DefineParticle(2010010020, "CDeuteron", kPTHadron, 3.226,
@@ -1663,7 +1675,8 @@ void addSpecialParticles() {
                                       0, 0, 0, 0, 0, -2, kTRUE);
 }
 
-void O2MCApplicationBase::AddParticles() {
+void O2MCApplicationBase::AddParticles()
+{
   // dispatch first to function in FairRoot
   FairMCApplication::AddParticles();
 
@@ -1671,7 +1684,7 @@ void O2MCApplicationBase::AddParticles() {
   // TODO: try to make use of FairRoot if easier or more customizable
   addSpecialParticles();
 
-  auto &param = o2::conf::SimUserDecay::Instance();
+  auto& param = o2::conf::SimUserDecay::Instance();
   LOG(info) << "Printing \'SimUserDecay\' parameters";
   LOG(info) << param;
 
@@ -1689,38 +1702,41 @@ void O2MCApplicationBase::AddParticles() {
   }
 }
 
-void O2MCApplicationBase::initTrackRefHook() {
+void O2MCApplicationBase::initTrackRefHook()
+{
   if (mCutParams.stepTrackRefHook) {
     LOG(info) << "Initializing the hook for TrackReferences during stepping";
     auto expandedTrackRefHookFileName =
-        o2::utils::expandShellVarsInFileName(mCutParams.stepTrackRefHookFile);
+      o2::utils::expandShellVarsInFileName(mCutParams.stepTrackRefHookFile);
     if (std::filesystem::exists(expandedTrackRefHookFileName)) {
       // if this file exists we will compile the hook on the fly
       mTrackRefFcn = o2::conf::GetFromMacro<TrackRefFcn>(
-          mCutParams.stepTrackRefHookFile, "trackRefHook()",
-          "o2::steer::O2MCApplicationBase::TrackRefFcn",
-          "o2mc_stepping_trackref_hook");
+        mCutParams.stepTrackRefHookFile, "trackRefHook()",
+        "o2::steer::O2MCApplicationBase::TrackRefFcn",
+        "o2mc_stepping_trackref_hook");
       LOG(info) << "Hook initialized from file "
                 << expandedTrackRefHookFileName;
     } else {
       LOG(error) << "Did not file TrackRefHook file "
                  << expandedTrackRefHookFileName << " ; Will not execute hook";
-      mTrackRefFcn = [](TVirtualMC const *) {}; // do nothing
+      mTrackRefFcn = [](TVirtualMC const*) {}; // do nothing
     }
   }
 }
 
-void O2MCApplication::initLate() {
+void O2MCApplication::initLate()
+{
   o2::utils::ShmManager::Instance().occupySegment();
   for (auto det : listActiveDetectors) {
-    if (dynamic_cast<o2::base::Detector *>(det)) {
-      ((o2::base::Detector *)det)->initializeLate();
+    if (dynamic_cast<o2::base::Detector*>(det)) {
+      ((o2::base::Detector*)det)->initializeLate();
     }
   }
 }
 
 void O2MCApplication::attachSubEventInfo(
-    fair::mq::Parts &parts, o2::data::SubEventInfo const &info) const {
+  fair::mq::Parts& parts, o2::data::SubEventInfo const& info) const
+{
   // parts.AddPart(std::move(mSimDataChannel->NewSimpleMessage(info)));
   o2::base::attachTMessage(info, *mSimDataChannel, parts);
 }
@@ -1728,47 +1744,50 @@ void O2MCApplication::attachSubEventInfo(
 // helper function to fetch data from FairRootManager branch and serialize it
 // returns handle to container
 template <typename T>
-const T *attachBranch(std::string const &name, fair::mq::Channel &channel,
-                      fair::mq::Parts &parts) {
+const T* attachBranch(std::string const& name, fair::mq::Channel& channel,
+                      fair::mq::Parts& parts)
+{
   auto mgr = FairRootManager::Instance();
   // check if branch is present
   if (mgr->GetBranchId(name) == -1) {
     LOG(error) << "Branch " << name << " not found";
     return nullptr;
   }
-  auto data = mgr->InitObjectAs<const T *>(name.c_str());
+  auto data = mgr->InitObjectAs<const T*>(name.c_str());
   if (data) {
     o2::base::attachTMessage(*data, channel, parts);
   }
   return data;
 }
 
-void O2MCApplication::setSubEventInfo(o2::data::SubEventInfo *i) {
+void O2MCApplication::setSubEventInfo(o2::data::SubEventInfo* i)
+{
   mSubEventInfo = i;
   // being communicated a SubEventInfo also means we get a FairMCEventHeader
   fMCEventHeader = &mSubEventInfo->mMCEventHeader;
 }
 
-void O2MCApplication::SendData() {
+void O2MCApplication::SendData()
+{
   fair::mq::Parts simdataparts;
 
   // fill these parts ... the receiver has to unpack similary
   // TODO: actually we could just loop over branches in FairRootManager at this
   // moment?
   mSubEventInfo->npersistenttracks =
-      static_cast<o2::data::Stack *>(GetStack())->getMCTracks()->size();
+    static_cast<o2::data::Stack*>(GetStack())->getMCTracks()->size();
   mSubEventInfo->nprimarytracks =
-      static_cast<o2::data::Stack *>(GetStack())->GetNprimary();
+    static_cast<o2::data::Stack*>(GetStack())->GetNprimary();
   attachSubEventInfo(simdataparts, *mSubEventInfo);
   auto tracks = attachBranch<std::vector<o2::MCTrack>>(
-      "MCTrack", *mSimDataChannel, simdataparts);
+    "MCTrack", *mSimDataChannel, simdataparts);
   attachBranch<std::vector<o2::TrackReference>>("TrackRefs", *mSimDataChannel,
                                                 simdataparts);
   assert(tracks->size() == mSubEventInfo->npersistenttracks);
 
   for (auto det : listActiveDetectors) {
-    if (dynamic_cast<o2::base::Detector *>(det)) {
-      ((o2::base::Detector *)det)->attachHits(*mSimDataChannel, simdataparts);
+    if (dynamic_cast<o2::base::Detector*>(det)) {
+      ((o2::base::Detector*)det)->attachHits(*mSimDataChannel, simdataparts);
     }
   }
   LOG(info) << "sending message with " << simdataparts.Size() << " parts";
