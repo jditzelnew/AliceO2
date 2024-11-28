@@ -301,7 +301,7 @@ inline void O2DatabasePDG::addALICEParticles(TDatabasePDG* db)
                     "Ion", ionCode);
   }
 
-    // hyper helium 4 sigma
+  // hyper helium 4 sigma
   ionCode = 1110020040;
   if (!db->GetParticle(ionCode)) {
     db->AddParticle("Hyperhelium4sigma", "Hyperhelium4sigma", 3.995, kFALSE,
