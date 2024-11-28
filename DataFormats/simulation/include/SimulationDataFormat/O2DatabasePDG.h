@@ -301,31 +301,7 @@ inline void O2DatabasePDG::addALICEParticles(TDatabasePDG* db)
                     "Ion", ionCode);
   }
 
-  ionCode = 1010020050;
-  if (!db->GetParticle(ionCode)) {
-    db->AddParticle("Hyperhelium5", "Hyperhelium5", 4.841, kFALSE, 2.5e-15, 6,
-                    "Ion", ionCode);
-  }
-
-  ionCode = -1010020050;
-  if (!db->GetParticle(ionCode)) {
-    db->AddParticle("AntiHyperhelium5", "AntiHyperhelium5", 4.841, kFALSE,
-                    2.5e-15, 6, "Ion", ionCode);
-  }
-
-  ionCode = 1020010040;
-  if (!db->GetParticle(ionCode)) {
-    db->AddParticle("DoubleHyperhydrogen4", "DoubleHyperhydrogen4", 4.106,
-                    kFALSE, 2.5e-15, 6, "Ion", ionCode);
-  }
-
-  ionCode = -1020010040;
-  if (!db->GetParticle(ionCode)) {
-    db->AddParticle("DoubleAntiHyperhydrogen4", "DoubleAntiHyperhydrogen4",
-                    4.106, kFALSE, 2.5e-15, 6, "Ion", ionCode);
-  }
-
-  // hyper helium 4 sigma
+    // hyper helium 4 sigma
   ionCode = 1110020040;
   if (!db->GetParticle(ionCode)) {
     db->AddParticle("Hyperhelium4sigma", "Hyperhelium4sigma", 3.995, kFALSE,
