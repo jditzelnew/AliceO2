@@ -256,7 +256,7 @@ inline void O2DatabasePDG::addALICEParticles(TDatabasePDG* db)
   if (!db->GetParticle(ionCode)) {
     db->AddParticle("AntiHyperhydrog4", "AntiHyperhydrog4", 3.922434, kFALSE,
                     2.5e-15, 3, "Ion", ionCode);
-  }  
+  }
   //hyper helium 4 ground state
   ionCode = 1010020040;
   if (!db->GetParticle(ionCode)) {
@@ -269,7 +269,7 @@ inline void O2DatabasePDG::addALICEParticles(TDatabasePDG* db)
     db->AddParticle("AntiHyperhelium4", "AntiHyperhelium4", 3.921728, kFALSE,
                     2.5e-15, 6, "Ion", ionCode);
   }
-  
+
   // Lithium 4 ground state
   ionCode = 1000030040;
   if (!db->GetParticle(ionCode)) {
@@ -307,7 +307,7 @@ inline void O2DatabasePDG::addALICEParticles(TDatabasePDG* db)
                     2.5e-15, 6, "Ion", ionCode);
   }
 
-   // 4-Xi-He
+  // 4-Xi-He
   ionCode = 1120020040;
   if (!db->GetParticle(ionCode)) {
     db->AddParticle("4XiHe", "4XiHe", 4.128, kFALSE, 4.04e-15, 3, "Ion", ionCode);

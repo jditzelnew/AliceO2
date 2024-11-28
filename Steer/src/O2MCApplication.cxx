@@ -293,7 +293,7 @@ void addSpecialParticles()
   //Double Anti-Hyper hydrogen 4
   TVirtualMC::GetMC()->DefineParticle(-1020010040, "DoubleAntiHyperhydrogen4", kPTHadron, 4.106, 1.0, 2.632e-10, "Ion", 0.0, 0, 1, 0, 0, 0, 0, 0, 4, kFALSE);
 
-   // 4Xi(-)H
+  // 4Xi(-)H
   TVirtualMC::GetMC()->DefineParticle(1120010040, "4XiH", kPTHadron, 4.128, 1.0, 1.639e-10, "Ion", 0.0, 0, 1, 0, 0, 0, 0, 0, 4, kFALSE);
   // Anti-4Xi(-)H
   TVirtualMC::GetMC()->DefineParticle(-1120010040, "Anti4XiH", kPTHadron, 4.128, 1.0, 1.639e-10, "Ion", 0.0, 0, 1, 0, 0, 0, 0, 0, 4, kFALSE);
@@ -764,7 +764,7 @@ void addSpecialParticles()
 
   TVirtualMC::GetMC()->SetDecayMode(-1020010040, abratio42, amode42);
 
-   // Define the decay for the 4Xi(-)He
+  // Define the decay for the 4Xi(-)He
   Int_t mode4XiHe[6][3];
   Float_t bratio4XiHe[6];
 
